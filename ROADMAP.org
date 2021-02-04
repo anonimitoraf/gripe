@@ -1,4 +1,4 @@
 #+TITLE: Roadmap
 
-Upcoming
-* Integration with Ivy/Helm/Ido/Spectrum
+* Upcoming
+- Integration with Ivy/Helm/Ido/Spectrum
