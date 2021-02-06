@@ -1,4 +1,7 @@
 #+TITLE: Roadmap
 
-* Upcoming
-- Integration with Ivy/Helm/Ido/Spectrum
+* Must-have
+- [ ] Implement file-preview (similar to `ivy-calling`)
+* Nice-to-have
+- [ ] Support https://github.com/borkdude/grasp
+- [ ] Implement collapsible file references (similar to Magit file diff drawers)
