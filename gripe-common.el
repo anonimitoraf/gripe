@@ -27,7 +27,7 @@
   line-numbers)
 
 ;; Taken from https://stackoverflow.com/a/23078813
-(defun async-shell-command-to-string (command callback)
+(defun gripe--async-shell-command-to-string (command callback)
   "Execute shell command COMMAND asynchronously in the background.
 
 Return the temporary output buffer which command is writing to

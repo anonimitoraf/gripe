@@ -35,8 +35,8 @@
   (interactive
    (list (read-file-name "File/directory to search: ")
          (read-string "Pattern to search: ")))
-  (async-shell-command-to-string (concat "grape --unindent '" pattern "' "  file-or-dir-path)
-                                 #'gripe--render-grape-output))
+  (gripe--async-shell-command-to-string (concat "grape --unindent '" pattern "' "  file-or-dir-path)
+                                        #'gripe--render-grape-output))
 
 (provide 'gripe)
 ;;; gripe.el ends here
