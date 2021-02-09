@@ -20,6 +20,7 @@
 ;;; Code:
 
 (require 'cl-lib)
+(require 'subr-x)
 
 (cl-defstruct gripe--occ-line line-number)
 (cl-defstruct gripe--occ-file
@@ -35,12 +36,12 @@ during execution.
 
 When the command is finished, call CALLBACK with the resulting
 output as a string."
-  (lexical-let
+  (let*
       ((output-buffer (generate-new-buffer " *temp*"))
        (callback-fun callback))
     (set-process-sentinel
-     (start-process "Shell" output-buffer shell-file-name shell-command-switch command)
-     (lambda (process signal)
+     (start-process "gripe-async" output-buffer shell-file-name shell-command-switch command)
+     (lambda (process)
        (when (memq (process-status process) '(exit signal))
          (with-current-buffer output-buffer
            (let ((output-string

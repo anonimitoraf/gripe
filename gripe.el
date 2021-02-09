@@ -23,12 +23,16 @@
 (require 'gripe-ivy)
 
 ;; For now, just ivy. I've yet to learn how `defcustom' and whatnot works
-(setq gripe-completion 'ivy)
+(defvar gripe-completion 'ivy
+  "Decidees which completion package to use.
+Currently `'ivy' is the only value allowed.")
 
 (defun gripe--render-grape-output (grape-output)
   "Renders the GRAPE-OUTPUT."
   (let ((gripe-ast (gripe--make-grape-output-ast (split-string grape-output "\n"))))
-    (cond ((equal gripe-completion 'ivy) (gripe--ivy gripe-ast)))))
+    (cond ((equal gripe-completion 'ivy) (gripe--ivy gripe-ast))
+          (t (user-error (concat "Invalid value for gripe-completion :"
+                                 (prin1-to-string gripe-completion)))))))
 
 (defun gripe-find (file-or-dir-path pattern)
   "Find occurrences of a pattern within a file/directory.
