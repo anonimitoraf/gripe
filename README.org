@@ -7,11 +7,11 @@ WORK IN PROGRESS! (I just barely started on this)
 * Notes
 - Only `ivy` is supported at the moment. See [[https://github.com/anonimitoraf/gripe/blob/main/ROADMAP.org][ROADMAP]]
 
-* Quick Start
-
+* Commands
 | Command    | Description                                                       |
 | gripe-find | Invokes `grape` on your specified file/directory path and pattern |
 
+* Configuration
 | Configuration | Default | Description |
 |---------------+---------+-------------|
 |               |         |             |
