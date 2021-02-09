@@ -7,5 +7,8 @@
   - [ ] Show the first-line of the matches
     - Probably not possible until ivy-posframe is avoided otherwise, it might undesirably wrap
   - [ ] Highlight the matches in the file preview (sort of like what swiper does)
+- [ ] Support helm [0%]
+- [ ] Support ido [0%]
+- [ ] Support selectrum [0%]
 * Nice-to-have
 - [ ] Support https://github.com/borkdude/grasp
