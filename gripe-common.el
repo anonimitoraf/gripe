@@ -84,5 +84,9 @@ output as a string."
   (file-relative-name full-path
                       (locate-dominating-file full-path "project.clj")))
 
+(defun gripe--flatten-list-1 (list-of-lists)
+  "Flatten LIST-OF-LISTS once (i.e. depth = 1)."
+  (apply #'append list-of-lists))
+
 (provide 'gripe-common)
 ;;; gripe-common.el ends here

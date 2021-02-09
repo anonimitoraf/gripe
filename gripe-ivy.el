@@ -23,27 +23,40 @@
 (require 'ivy)
 (require 'gripe-common)
 
-(defun gripe--ivy-preview-occurrence ()
-  "Preview a gripe occurrence."
-  (message (ivy-state-current ivy-last)))
+(defun gripe--ivy-go-to-occurrence (selected)
+  "Go to the file and line number of the SELECTED grape occurrence."
+  (let* (;; val is of shape '("path:line-num" ("path", "line-num"))
+         (val (car (cdr selected)))
+         (full-file-path (car val))
+         (line-number (car (cdr val))))
+    (when (file-exists-p full-file-path)
+      (find-file full-file-path)
+      (goto-line (string-to-number line-number)))))
 
 (defun gripe--ivy (gripe-ast)
   "Navigate through gripe results with ivy.
 * GRIPE-AST - The output of `gripe--make-grape-output-ast'"
   (interactive)
   (ivy-read "Preview pattern match: "
-            (flatten-list
+            (gripe--flatten-list-1
              (cl-map 'list
                      (lambda (occ-file)
                        (cl-map 'list
                                (lambda (occ-line)
-                                 (concat (gripe--path-relative-from-project-root
-                                          (gripe--occ-file-file-path occ-file))
-                                         (gripe--occ-line-line-number occ-line)))
+                                 (let* ((candidate-key (concat (gripe--path-relative-from-project-root
+                                                                (gripe--occ-file-file-path occ-file))
+                                                               (gripe--occ-line-line-number occ-line)))
+                                        ;; grape's file path has a trailing ":" which we want to remove
+                                        (candidate-val (list (replace-regexp-in-string
+                                                              "\\(.*\\):$" "\\1"
+                                                              (gripe--occ-file-file-path occ-file))
+                                                             (gripe--occ-line-line-number occ-line))))
+                                   (list candidate-key candidate-val)))
                                (gripe--occ-file-line-numbers occ-file)))
                      gripe-ast))
             :require-match t
-            :update-fn #'gripe--ivy-preview-occurrence))
+            :update-fn 'auto
+            :action #'gripe--ivy-go-to-occurrence))
 
 (provide 'gripe-ivy)
 ;;; gripe-ivy.el ends here
