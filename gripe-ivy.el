@@ -9,7 +9,7 @@
 ;; Version: 0.0.1
 ;; Keywords: Symbol’s value as variable is void: finder-known-keywords
 ;; Homepage: https://github.com/anonimito/gripe-ivy
-;; Package-Requires: ((emacs "24.3") (ivy "0.8.0"))
+;; Package-Requires: ((emacs "24.3") (cl-lib "1.0") (ivy "0.8.0"))
 ;;
 ;; This file is not part of GNU Emacs.
 ;;

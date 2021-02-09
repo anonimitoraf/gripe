@@ -10,3 +10,7 @@
 - [ ] Support selectrum [0%]
 * Nice-to-have
 - [ ] Support https://github.com/borkdude/grasp
+
+
+* General TODOs [0%]
+- [ ] Get package to a melpa-publishable state
