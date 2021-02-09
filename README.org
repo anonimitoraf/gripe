@@ -1,0 +1,9 @@
+# gripe
+Emacs wrapper for https://github.com/bfontaine/grape
+
+WORK IN PROGRESS! (I just barely started on this)
+
+## Quick Start
+
+| Command    | Description                                                       |
+| gripe-find | Invokes `grape` on your specified file/directory path and pattern |
