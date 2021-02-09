@@ -1,7 +1,11 @@
 #+TITLE: Roadmap
 
 * Must-have
-- [ ] Implement file-preview (similar to `ivy-calling`)
+- [-] Implement file-preview (similar to `ivy-calling`) [25%]
+  - [X] Moving through matches should auto-preview
+  - [ ] Avoid using ivy-posframe (because then, you can't see the matches)
+  - [ ] Show the first-line of the matches
+    - Probably not possible until ivy-posframe is avoided otherwise, it might undesirably wrap
+  - [ ] Highlight the matches in the file preview (sort of like what swiper does)
 * Nice-to-have
 - [ ] Support https://github.com/borkdude/grasp
-- [ ] Implement collapsible file references (similar to Magit file diff drawers)
