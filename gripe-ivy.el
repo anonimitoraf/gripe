@@ -23,6 +23,8 @@
 (require 'ivy)
 (require 'gripe-common)
 
+(setq gripe--ivy-highlight-removal-timer nil)
+
 (defun gripe--ivy-go-to-occurrence (selected)
   "Go to the file and line number of the SELECTED grape occurrence."
   (let* (;; val is of shape '("path:line-num" ("path", "line-num"))
@@ -31,7 +33,15 @@
          (line-number (car (cdr val))))
     (when (file-exists-p full-file-path)
       (find-file full-file-path)
-      (goto-line (string-to-number line-number)))))
+      (goto-line (string-to-number line-number))
+      (isearch-highlight (+ (line-beginning-position) (current-indentation))
+                         (line-end-position))
+      (unless gripe--ivy-highlight-removal-timer
+        (setq gripe--ivy-highlight-removal-timer
+              ;; Remove highlight after a while
+              (run-at-time "5 sec" nil (lambda ()
+                                         (isearch-highlight 0 0)
+                                         (setq gripe--ivy-highlight-removal-timer nil))))))))
 
 (defun gripe--ivy (gripe-ast)
   "Navigate through gripe results with ivy.

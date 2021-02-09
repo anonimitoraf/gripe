@@ -22,10 +22,13 @@
 (require 'gripe-common)
 (require 'gripe-ivy)
 
+;; For now, just ivy. I've yet to learn how `defcustom' and whatnot works
+(setq gripe-completion 'ivy)
+
 (defun gripe--render-grape-output (grape-output)
   "Renders the GRAPE-OUTPUT."
   (let ((gripe-ast (gripe--make-grape-output-ast (split-string grape-output "\n"))))
-    (gripe--ivy gripe-ast)))
+    (cond ((equal gripe-completion 'ivy) (gripe--ivy gripe-ast)))))
 
 (defun gripe-find (file-or-dir-path pattern)
   "Find occurrences of a pattern within a file/directory.
