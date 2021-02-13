@@ -11,6 +11,7 @@
 * Nice-to-have
 - [ ] Support https://github.com/borkdude/grasp
 
-
 * General TODOs [0%]
-- [ ] Get package to a melpa-publishable state
+- [ ] Get package to a melpa-publishable state [0%]
+  + [ ] Read through https://www.gnu.org/software/emacs/manual/html_node/elisp/Packaging.html#Packaging
+  + [ ] Read through https://web.archive.org/web/20111120220609/http://marmalade-repo.org/doc-files/package.5.html
