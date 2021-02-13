@@ -1,4 +1,4 @@
-;;; gripe.el --- Description -*- lexical-binding: t; -*-
+;;; gripe.el --- Emacs wrapper for https://github.com/bfontaine/grape -*- lexical-binding: t; -*-
 ;;
 ;; Copyright (C) 2021 Rafael Nicdao
 ;;
@@ -7,7 +7,7 @@
 ;; Created: February 04, 2021
 ;; Modified: February 04, 2021
 ;; Version: 0.0.1
-;; Keywords: Symbol’s value as variable is void: finder-known-keywords
+;; Keywords: clojure, grape, grep, search, pattern, wrapper
 ;; Homepage: https://github.com/anonimitoraf/gripe
 ;; Package-Requires: ((emacs "24.3"))
 ;;
@@ -15,7 +15,12 @@
 ;;
 ;;; Commentary:
 ;;
-;;  Description
+;;  Emacs wrapper for https://github.com/bfontaine/grape.
+;;  As of now, only `ivy' is the only supported completion interface.
+;;  To use:
+;;  * `M-x gripe-find'
+;;  * Look for the search file/directory path
+;;  * Enter a valid search pattern (See https://github.com/bfontaine/grape#command-line)
 ;;
 ;;; Code:
 
@@ -33,12 +38,10 @@ Currently `'ivy' is the only value allowed.")
     (cond ((equal gripe-completion 'ivy) (gripe--ivy gripe-ast))
           (t (user-error (concat "Invalid value for gripe-completion :"
                                  (prin1-to-string gripe-completion)))))))
-
+;;;###autoload
 (defun gripe-find (file-or-dir-path pattern)
-  "Find occurrences of a pattern within a file/directory.
-
-* FILE-OR-DIR-PATH - Path to search
-* PATTERN - Pattern to search for. (See https://github.com/bfontaine/grape#command-line)"
+  "Find occurrences of PATTERN within a FILE-OR-DIR-PATH.
+For the format of PATTERN, see https://github.com/bfontaine/grape#command-line"
   (interactive
    (list (read-file-name "File/directory to search: ")
          (read-string "Pattern to search: ")))

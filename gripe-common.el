@@ -1,4 +1,4 @@
-;;; gripe-common.el --- Description -*- lexical-binding: t; -*-
+;;; gripe-common.el --- Internal common utilities for gripe -*- lexical-binding: t; -*-
 ;;
 ;; Copyright (C) 2021 Rafael Nicdao
 ;;
@@ -6,16 +6,10 @@
 ;; Maintainer: Rafael Nicdao <nicdaoraf@gmail.com>
 ;; Created: February 08, 2021
 ;; Modified: February 08, 2021
-;; Version: 0.0.1
-;; Keywords: Symbol’s value as variable is void: finder-known-keywords
 ;; Homepage: https://github.com/anonimito/gripe-common
 ;; Package-Requires: ((emacs "24.3") (cl-lib "1.0"))
 ;;
 ;; This file is not part of GNU Emacs.
-;;
-;;; Commentary:
-;;
-;;  Description
 ;;
 ;;; Code:
 
@@ -53,8 +47,7 @@ output as a string."
     output-buffer))
 
 (defun gripe--make-grape-output-ast (lines)
-  "Parse grape's output into an AST.
-* LINES - grape's output split by newlines, to be parsed into an AST"
+  "Parse grape's output (i.e. LINES) into an AST."
   (let* ((ast '())
          ;; Returns non-nil if the particular line is the start of an occurrence.
          ;; The heuristic is the fact that the start of the occurrences start with a number.
@@ -77,7 +70,6 @@ output as a string."
        ;; Otheriwse, we assume it's a new file occurrence
        (t (setq ast (append ast (list (make-gripe--occ-file :file-path line
                                                             :line-numbers '())))))))
-    ;; Return the AST
     ast))
 
 (defun gripe--path-relative-from-project-root (full-path)
