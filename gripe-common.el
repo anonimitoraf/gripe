@@ -11,6 +11,10 @@
 ;;
 ;; This file is not part of GNU Emacs.
 ;;
+;;; Commentary:
+;;
+;;  Internal common utilities for gripe
+;;
 ;;; Code:
 
 (require 'cl-lib)
