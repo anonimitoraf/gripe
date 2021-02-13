@@ -27,10 +27,16 @@
 (require 'gripe-common)
 (require 'gripe-ivy)
 
-;; For now, just ivy. I've yet to learn how `defcustom' and whatnot works
-(defvar gripe-completion 'ivy
-  "Decidees which completion package to use.
-Currently `'ivy' is the only value allowed.")
+(defgroup gripe nil
+  "Wrapper for syntax-aware Clojure pattern search/grep alternative."
+  :group 'convenience)
+
+(defcustom gripe-completion nil
+  "Decidees which completion interface to use to pick within gripe results."
+  ;; Support for helm, ido, selctrum upcoming
+  :type '(choice
+          (const :tag "Ivy" ivy))
+  :group 'gripe)
 
 (defun gripe--render-grape-output (grape-output)
   "Renders the GRAPE-OUTPUT."
