@@ -35,7 +35,7 @@ output as a string."
        (callback-fun callback))
     (set-process-sentinel
      (start-process "gripe-async" output-buffer shell-file-name shell-command-switch command)
-     (lambda (process)
+     (lambda (process _signal)
        (when (memq (process-status process) '(exit signal))
          (with-current-buffer output-buffer
            (let ((output-string
