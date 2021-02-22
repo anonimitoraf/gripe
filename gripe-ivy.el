@@ -31,7 +31,8 @@
          (line-number (car (cdr val))))
     (when (file-exists-p full-file-path)
       (find-file full-file-path)
-      (forward-line (string-to-number line-number))
+      (goto-char (point-min))
+      (forward-line (1- (string-to-number line-number)))
       (isearch-highlight (+ (line-beginning-position) (current-indentation))
                          (line-end-position))
       (unless gripe--ivy-highlight-removal-timer
