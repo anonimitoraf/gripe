@@ -6,6 +6,7 @@ WORK IN PROGRESS! (I just barely started on this)
 
 * Notes
 - Only `ivy` is supported at the moment. See [[https://github.com/anonimitoraf/gripe/blob/main/ROADMAP.org][ROADMAP]]
+- Uses `project.clj` as the project marker
 
 * Commands
 | Command    | Description                                                       |
