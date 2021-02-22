@@ -56,6 +56,7 @@ output as a string."
          ;; Returns non-nil if the particular line is the start of an occurrence.
          ;; The heuristic is the fact that the start of the occurrences start with a number.
          (line-occurrence? (lambda (s) (string-match "^\\([[:digit:]]+\\):.*" s)))
+         ;; Continuations of an occurrence start with space/s
          (line-continuation? (lambda (s) (string-match "^\s+.*$" s))))
     (dolist (line lines)
       (cond
