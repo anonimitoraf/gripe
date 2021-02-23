@@ -2,8 +2,8 @@
 
 Emacs wrapper for https://github.com/bfontaine/grape
 
-WORK IN PROGRESS! (I just barely started on this)
-
+* Demos
+[[file:demos/gripe-ivy.gif][Ivy]]
 * Notes
 - Only `ivy` is supported at the moment. See [[https://github.com/anonimitoraf/gripe/blob/main/ROADMAP.org][ROADMAP]]
 - Uses `project.clj` as the project marker
