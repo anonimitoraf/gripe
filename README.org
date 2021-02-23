@@ -2,16 +2,9 @@
 
 Emacs wrapper for https://github.com/bfontaine/grape
 
-* Demos                                                                                                         :ATTACH:
-:PROPERTIES:
-:ID:       eb90017a-2c9d-4e3c-b75e-939310da5da1
-:END:
+* Demos
 The following demos show `gripe` being used to search within https://github.com/bfontaine/grape
-
-** Using Ivy
-
-[[attachment:_20210224_012033gripe-ivy.gif]]
-
+- [[file:demos/gripe-ivy.gif][Using Ivy]]
 * Notes
 - Only `ivy` is supported at the moment. See [[https://github.com/anonimitoraf/gripe/blob/main/ROADMAP.org][ROADMAP]]
 - Uses `project.clj` as the project marker
