@@ -32,8 +32,8 @@
   :group 'convenience)
 
 (defcustom gripe-completion nil
-  "Decidees which completion interface to use to pick within gripe results."
-  ;; Support for helm, ido, selctrum upcoming
+  "Decides which completion interface to use to pick within gripe results."
+  ;; Support for helm, ido, selectrum upcoming
   :type '(choice
           (const :tag "Ivy" ivy))
   :group 'gripe)
