@@ -14,9 +14,7 @@ The following demos show `gripe` being used to search within https://github.com/
 | gripe-find | Invokes `grape` on your specified file/directory path and pattern |
 
 * Configuration
-+---------------------+----------+---------------------------------------------+
 | Variable            | Default  | Description                                 |
-+---------------------+----------+---------------------------------------------+
 |  gripe-completion   | nil      | The completion package to use. Possible     |
 |                     |          | values are: 'ivy (for now) but there are    |
 |                     |          | plans of implementing others.               |
@@ -26,4 +24,3 @@ The following demos show `gripe` being used to search within https://github.com/
 |                     |          | completion packages will be used.           |
 |                     |          |                                             |
 |                     |          |                                             |
-+---------------------+----------+---------------------------------------------+
