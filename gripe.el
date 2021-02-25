@@ -9,7 +9,7 @@
 ;; Version: 0.0.1
 ;; Keywords: clojure, grape, grep, search, pattern, wrapper
 ;; Homepage: https://github.com/anonimitoraf/gripe
-;; Package-Requires: ((emacs "26.1") (ivy "0.13.0"))
+;; Package-Requires: ((emacs "24.5"))
 ;;
 ;; This file is not part of GNU Emacs.
 ;;
