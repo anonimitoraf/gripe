@@ -27,7 +27,7 @@
 (require 'cl-lib)
 (require 'subr-x)
 
-;;; Configuration
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; C O N F I G U R A T I O N ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defgroup gripe nil
   "Wrapper for syntax-aware Clojure pattern search/grep alternative."
@@ -46,7 +46,7 @@ If this is nil, the first completion package found is used, in this order:
           (const :tag "Ivy" ivy))
   :group 'gripe)
 
-;;; Core
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; C O R E ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; This is shared across the ivy, helm, ido, selectrum implementations
 
 (cl-defstruct gripe--occ-line line-number)
@@ -124,7 +124,7 @@ output as a string."
           (t (cond ((featurep 'ivy) (setq gripe-completion 'ivy)
                     (user-error (concat "Supported completion packages: (ivy). None found"))))))))
 
-;;; Ivy-specific code
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; I V Y ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defvar gripe--ivy-highlight-removal-timer nil)
 
@@ -174,7 +174,7 @@ output as a string."
               :update-fn 'auto
               :action #'gripe--ivy-go-to-occurrence)))
 
-;;; Public interface
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; P U B L I C - I N T E R F A C E ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;;###autoload
 (defun gripe-find (file-or-dir-path pattern)
