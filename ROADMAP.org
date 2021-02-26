@@ -1,18 +1,18 @@
 #+TITLE: Roadmap
 
 * Must-have
-- [-] Support ivy [75%]
+- [X] Support ivy [100%]
   + [X] Implement file-preview (similar to `ivy-calling`)
   + [X] Moving through matches should auto-preview
-  + [ ] Show the first-line of the matches in ivy
   + [X] Highlight the matches in the file preview (sort of like what swiper does)
-- [ ] Support helm [0%]
-- [ ] Support ido [0%]
-- [ ] Support selectrum [0%]
+- [X] Support helm
+- [ ] Support selectrum
+- [ ] Show the first-line of the matches
 * Nice-to-have
 - [ ] Support https://github.com/borkdude/grasp
 
 * General TODOs [0%]
-- [ ] Get package to a melpa-publishable state [0%]
-  + [ ] Read through https://www.gnu.org/software/emacs/manual/html_node/elisp/Packaging.html#Packaging
-  + [ ] Read through https://web.archive.org/web/20111120220609/http://marmalade-repo.org/doc-files/package.5.html
+- [-] Get package to a melpa-publishable state [66%]
+  + [X] Read through https://www.gnu.org/software/emacs/manual/html_node/elisp/Packaging.html#Packaging
+  + [X] Read through https://web.archive.org/web/20111120220609/http://marmalade-repo.org/doc-files/package.5.html
+  + [ ] Make a PR to melpa
