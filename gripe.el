@@ -16,7 +16,7 @@
 ;;; Commentary:
 ;;
 ;;  Emacs wrapper for https://github.com/bfontaine/grape.
-;;  As of now, only `ivy' is the only supported completion interface.
+;;  As of now, only `ivy' and `helm' are the only supported completion packages.
 ;;  To use:
 ;;  * `M-x gripe-find'
 ;;  * Look for the search file/directory path
@@ -35,19 +35,25 @@
 
 (defcustom gripe-completion nil
   "Decides which completion package to use for rendering the gripe results.
-Currently, only `ivy' is supported.
-Support for `helm', `ido' and `selectrum' are planned.
+Possible values: `'ivy', `'helm'.
+Support for `'selectrum' is planned.
 If this is nil, the first completion package found is used, in this order:
 - selectrum
-- ivy
 - helm
-- ido"
+- ivy"
   :type '(choice
-          (const :tag "Ivy" ivy))
+          (const :tag "ivy" ivy)
+          (const :tag "helm" helm))
+  :group 'gripe)
+
+(defcustom gripe-highlight-duration nil
+  "How long (in sec) the highlight is active when previewing a result.
+Defaults to 1 sec."
+  :type 'number
   :group 'gripe)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; C O R E ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; This is shared across the ivy, helm, ido, selectrum implementations
+;; This is shared across the completion packages' implementations
 
 (cl-defstruct gripe--occ-line line-number)
 (cl-defstruct gripe--occ-file
@@ -63,9 +69,8 @@ during execution.
 
 When the command is finished, call CALLBACK with the resulting
 output as a string."
-  (let*
-      ((output-buffer (generate-new-buffer " *temp*"))
-       (callback-fun callback))
+  (let* ((output-buffer (generate-new-buffer " *temp*"))
+         (callback-fun callback))
     (set-process-sentinel
      (start-process "gripe-async" output-buffer shell-file-name shell-command-switch command)
      (lambda (process _signal)
@@ -115,37 +120,83 @@ output as a string."
   "Renders the GRAPE-OUTPUT."
   (let ((gripe-ast (gripe--make-grape-output-ast (split-string grape-output "\n"))))
     (cond ((equal gripe-completion 'ivy) (gripe--ivy gripe-ast))
+          ((equal gripe-completion 'helm) (gripe--helm gripe-ast))
           ;; No user preference specified, use the first supported completion pkg found
           ;; in this order:
           ;; - selectrum - TODO
+          ;; - helm
           ;; - ivy
-          ;; - helm - TODO
-          ;; - ido - TODO
-          (t (cond ((featurep 'ivy) (setq gripe-completion 'ivy)
-                    (user-error (concat "Supported completion packages: (ivy). None found"))))))))
+          ((featurep 'helm) (gripe--helm gripe-ast))
+          ((featurep 'ivy) (gripe--ivy gripe-ast))
+          (t (user-error (concat "Supported completion packages: (ivy, helm). None found"))))))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; I V Y ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; C O M M O N - H E L P E R S ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defvar gripe--ivy-highlight-removal-timer nil)
+(defun gripe--flatten-list-1 (list-of-lists)
+  "Flatten LIST-OF-LISTS once (i.e. depth = 1)."
+  (apply #'append list-of-lists))
 
-(defun gripe--ivy-go-to-occurrence (selected)
-  "Go to the file and line number of the SELECTED grape occurrence."
-  (let* (;; val is of shape '("path:line-num" ("path", "line-num"))
-         (val (car (cdr selected)))
-         (full-file-path (car val))
-         (line-number (car (cdr val))))
+(defun gripe--make-candidates (gripe-ast)
+  "Transform GRIPE-AST into a list of '(file-line-num-string (file-name line-num))."
+  (gripe--flatten-list-1 (cl-map 'list
+                                 (lambda (occ-file)
+                                   (cl-map 'list
+                                           (lambda (occ-line)
+                                             (let* ((candidate-key (concat (gripe--path-relative-from-project-root
+                                                                            (gripe--occ-file-file-path occ-file))
+                                                                           (gripe--occ-line-line-number occ-line)))
+                                                    ;; grape's file path has a trailing ":" which we want to remove
+                                                    (candidate-val (list (replace-regexp-in-string
+                                                                          "\\(.*\\):$" "\\1"
+                                                                          (gripe--occ-file-file-path occ-file))
+                                                                         (gripe--occ-line-line-number occ-line))))
+                                               (list candidate-key candidate-val)))
+                                           (gripe--occ-file-line-numbers occ-file)))
+                                 gripe-ast)))
+
+(defvar gripe--highlight-removal-timer nil)
+
+(defun gripe--go-to-occurrence (selected)
+  "Go to the file and line number of the SELECTED grape occurrence.
+
+SELECTED is expected to be of shape '(\"{path}\" \"{line}\")"
+  (let* ((full-file-path (car selected))
+         (line-number (car (cdr selected))))
     (when (file-exists-p full-file-path)
       (find-file full-file-path)
       (goto-char (point-min))
       (forward-line (1- (string-to-number line-number)))
       (isearch-highlight (+ (line-beginning-position) (current-indentation))
                          (line-end-position))
-      (unless gripe--ivy-highlight-removal-timer
-        (setq gripe--ivy-highlight-removal-timer
+      (unless gripe--highlight-removal-timer
+        (setq gripe--highlight-removal-timer
               ;; Remove highlight after a while
-              (run-at-time "5 sec" nil (lambda ()
-                                         (isearch-highlight 0 0)
-                                         (setq gripe--ivy-highlight-removal-timer nil))))))))
+              (run-at-time (concat (number-to-string (or gripe-highlight-duration 1)) " sec")
+                           nil
+                           (lambda ()
+                             (isearch-highlight 0 0)
+                             (setq gripe--highlight-removal-timer nil))))))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; H E L M ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defun gripe--make-helm-source (gripe-ast)
+  "Create a helm soure from GRIPE-AST."
+  (progn
+    (helm-build-sync-source "Pattern occurrences"
+      :match (lambda (_candidate) t)
+      :candidates (gripe--make-candidates gripe-ast)
+      ;; For some reason, helm returns a list for the
+      ;; supposedly single selected candidate
+      :action '(("Preview" . (lambda (multi-selected)
+                               (gripe--go-to-occurrence (car multi-selected))))))))
+
+(defun gripe--helm (gripe-ast)
+  "Navigate through gripe results with helm.
+* GRIPE-AST - The output of `gripe--make-grape-output-ast'"
+  (helm :sources (gripe--make-helm-source gripe-ast)
+        :buffer "*helm gripe*"))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; I V Y ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun gripe--ivy (gripe-ast)
   "Navigate through gripe results with ivy.
@@ -153,26 +204,13 @@ output as a string."
   (interactive)
   (progn
     (require 'ivy)
-    (ivy-read "Preview pattern match: "
-              (apply #'append ; Flatten the list of lists
-                     (cl-map 'list
-                             (lambda (occ-file)
-                               (cl-map 'list
-                                       (lambda (occ-line)
-                                         (let* ((candidate-key (concat (gripe--path-relative-from-project-root
-                                                                        (gripe--occ-file-file-path occ-file))
-                                                                       (gripe--occ-line-line-number occ-line)))
-                                                ;; grape's file path has a trailing ":" which we want to remove
-                                                (candidate-val (list (replace-regexp-in-string
-                                                                      "\\(.*\\):$" "\\1"
-                                                                      (gripe--occ-file-file-path occ-file))
-                                                                     (gripe--occ-line-line-number occ-line))))
-                                           (list candidate-key candidate-val)))
-                                       (gripe--occ-file-line-numbers occ-file)))
-                             gripe-ast))
+    (ivy-read "Preview pattern match: " (gripe--make-candidates gripe-ast)
               :require-match t
               :update-fn 'auto
-              :action #'gripe--ivy-go-to-occurrence)))
+              ;; This returns '("{path}:{line}" ("{path}" "{line}")).
+              ;; We want to pass in only ("{path}" "{line}")
+              :action (lambda (selected-key-val)
+                        (gripe--go-to-occurrence (car (cdr selected-key-val)))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; P U B L I C - I N T E R F A C E ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -183,6 +221,7 @@ For the format of PATTERN, see https://github.com/bfontaine/grape#command-line"
   (interactive
    (list (read-file-name "File/directory to search: ")
          (read-string "Pattern to search: ")))
+  ;; TODO Check that grape exists
   (gripe--async-shell-command-to-string (concat "grape --unindent '" pattern "' "  file-or-dir-path)
                                         #'gripe--render-grape-output))
 
