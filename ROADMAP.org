@@ -5,9 +5,8 @@
   + [X] Basic support
   + [X] Implement file-preview (similar to `ivy-calling`)
   + [X] Moving through matches should auto-preview
-- [-] Support helm [50%]
+- [X] Support helm [100%]
   + [X] Basic support
-  + [ ] Moving through matches should auto-preview (How do you do this in helm?)
 - [ ] Support selectrum
 - [ ] Show the first-line of the matches
 - [X] Highlight the matches in the file preview (sort of like what swiper does)
