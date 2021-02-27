@@ -35,15 +35,16 @@
 
 (defcustom gripe-completion nil
   "Decides which completion package to use for rendering the gripe results.
-Possible values: `'ivy', `'helm'.
+Possible values: `'ivy', `'helm', `'selectrum'.
 Support for `'selectrum' is planned.
 If this is nil, the first completion package found is used, in this order:
 - selectrum
 - helm
 - ivy"
   :type '(choice
-          (const :tag "ivy" ivy)
-          (const :tag "helm" helm))
+          (const :tag "selectrum" selectrum)
+          (const :tag "helm" helm)
+          (const :tag "ivy" ivy))
   :group 'gripe)
 
 (defcustom gripe-highlight-duration nil
@@ -121,14 +122,16 @@ output as a string."
   (let ((gripe-ast (gripe--make-grape-output-ast (split-string grape-output "\n"))))
     (cond ((equal gripe-completion 'ivy) (gripe--ivy gripe-ast))
           ((equal gripe-completion 'helm) (gripe--helm gripe-ast))
+          ((equal gripe-completion 'selectrum) (gripe--selectrum gripe-ast))
           ;; No user preference specified, use the first supported completion pkg found
           ;; in this order:
-          ;; - selectrum - TODO
+          ;; - selectrum
           ;; - helm
           ;; - ivy
+          ((featurep 'selectrum) (gripe--selectrum gripe-ast))
           ((featurep 'helm) (gripe--helm gripe-ast))
           ((featurep 'ivy) (gripe--ivy gripe-ast))
-          (t (user-error (concat "Supported completion packages: (ivy, helm). None found"))))))
+          (t (user-error (concat "Supported completion packages: (ivy, helm, selectrum). None found"))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; C O M M O N - H E L P E R S ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -176,6 +179,30 @@ SELECTED is expected to be of shape '(\"{path}\" \"{line}\")"
                            (lambda ()
                              (isearch-highlight 0 0)
                              (setq gripe--highlight-removal-timer nil))))))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; S E L E C T R U M ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(add-hook 'selectrum-candidate-selected-hook
+          (lambda (selected-key &rest props)
+            (let* ((lookup (plist-get props :minibuffer-completion-table))
+                   (selected-entry (cl-remove-if-not
+                                    (lambda (entry)
+                                      (equal (car entry) selected-key))
+                                    lookup))
+                   (selected-val (car (cdr (car selected-entry)))))
+              ;; (message (concat "Selectrum hook: "
+              ;;                  (prin1-to-string selected-key)
+              ;;                  " and: "
+              ;;                  (prin1-to-string selected-val)))
+              (gripe--go-to-occurrence selected-val))))
+
+(defun gripe--selectrum (gripe-ast)
+  "Navigate through gripe results with helm.
+* GRIPE-AST - The output of `gripe--make-grape-output-ast'"
+  (selectrum-completing-read "Go to a pattern occurrence: "
+                             (gripe--make-candidates gripe-ast)
+                             nil ; No filtering on candidates
+                             t))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; H E L M ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
