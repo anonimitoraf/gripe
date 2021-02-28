@@ -38,13 +38,13 @@
 Possible values: `'ivy', `'helm', `'selectrum'.
 Support for `'selectrum' is planned.
 If this is nil, the first completion package found is used, in this order:
-- selectrum
+- ivy
 - helm
-- ivy"
+- selectrum"
   :type '(choice
-          (const :tag "selectrum" selectrum)
+          (const :tag "ivy" ivy)
           (const :tag "helm" helm)
-          (const :tag "ivy" ivy))
+          (const :tag "selectrum" selectrum))
   :group 'gripe)
 
 (defcustom gripe-highlight-duration nil
@@ -123,14 +123,10 @@ output as a string."
     (cond ((equal gripe-completion 'ivy) (gripe--ivy gripe-ast))
           ((equal gripe-completion 'helm) (gripe--helm gripe-ast))
           ((equal gripe-completion 'selectrum) (gripe--selectrum gripe-ast))
-          ;; No user preference specified, use the first supported completion pkg found
-          ;; in this order:
-          ;; - selectrum
-          ;; - helm
-          ;; - ivy
-          ((featurep 'selectrum) (gripe--selectrum gripe-ast))
-          ((featurep 'helm) (gripe--helm gripe-ast))
+          ;; No user preference specified, use the first supported completion pkg found:
           ((featurep 'ivy) (gripe--ivy gripe-ast))
+          ((featurep 'helm) (gripe--helm gripe-ast))
+          ((featurep 'selectrum) (gripe--selectrum gripe-ast))
           (t (user-error (concat "Supported completion packages: (ivy, helm, selectrum). None found"))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; C O M M O N - H E L P E R S ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
