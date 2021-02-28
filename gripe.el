@@ -179,8 +179,8 @@ SELECTED is expected to be of shape '(\"{path}\" \"{line}\")"
 (defun gripe--show-config-on-user-error ()
   "Renders user configuration as a portion of the user error."
   (concat "Gripe configuration:\n"
-          "gripe-completion: " (prin1-to-string gripe-completion) "\n"
-          "gripe-highlight-duration: " (prin1-to-string gripe-highlight-duration) "\n"))
+          "  gripe-completion: " (prin1-to-string gripe-completion) "\n"
+          "  gripe-highlight-duration: " (prin1-to-string gripe-highlight-duration) "\n"))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; S E L E C T R U M ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -201,8 +201,8 @@ selected value in LOOKUP"
   (let* ((lookup (gripe--make-candidates gripe-parsed-output))
          (selected-key (if (fboundp 'selectrum-completing-read)
                            (selectrum-completing-read "Go to a pattern occurrence: " lookup nil t)
-                         (user-error (concat "The function`selectrum-completing-read' is missing."
-                                             "Is `selectrum' installed?"
+                         (user-error (concat "The function `selectrum-completing-read' is missing. "
+                                             "Is `selectrum' installed?\n"
                                              (gripe--show-config-on-user-error))))))
     (gripe--on-selectrum-selection selected-key lookup)))
 
@@ -213,13 +213,13 @@ selected value in LOOKUP"
   (progn
     (if (fboundp 'helm-build-sync-source)
         (helm-build-sync-source "Pattern occurrences"
-          :match (lambda (_candidate) t)
-          :candidates (gripe--make-candidates gripe-parsed-output)
-          ;; For some reason, helm returns a list for the
-          ;; supposedly single selected candidate
-          :action '(("Preview" . (lambda (multi-selected)
-                                   (gripe--go-to-occurrence (car multi-selected))))))
-      (user-error (concat "The function`helm-build-sync-source' is missing. Is `helm' installed?"
+                                :match (lambda (_candidate) t)
+                                :candidates (gripe--make-candidates gripe-parsed-output)
+                                ;; For some reason, helm returns a list for the
+                                ;; supposedly single selected candidate
+                                :action '(("Preview" . (lambda (multi-selected)
+                                                         (gripe--go-to-occurrence (car multi-selected))))))
+      (user-error (concat "The function `helm-build-sync-source' is missing. Is `helm' installed?\n"
                           (gripe--show-config-on-user-error))))))
 
 (defun gripe--helm (gripe-parsed-output)
@@ -228,7 +228,7 @@ selected value in LOOKUP"
   (if (fboundp 'helm)
       (helm :sources (gripe--make-helm-source gripe-parsed-output)
             :buffer "*helm gripe*")
-    (user-error (concat "The function`helm' is missing. Is `helm' installed?"
+    (user-error (concat "The function `helm' is missing. Is `helm' installed?\n"
                         (gripe--show-config-on-user-error)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; I V Y ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -247,7 +247,7 @@ selected value in LOOKUP"
                   ;; We want to pass in only ("{path}" "{line}")
                   :action (lambda (selected-key-val)
                             (gripe--go-to-occurrence (car (cdr selected-key-val)))))
-      (user-error (concat "The function`ivy-read' is missing. Is `ivy' installed?"
+      (user-error (concat "The function `ivy-read' is missing. Is `ivy' installed?\n"
                           (gripe--show-config-on-user-error))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; P U B L I C - I N T E R F A C E ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
