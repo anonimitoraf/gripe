@@ -3,9 +3,9 @@
 Emacs wrapper for https://github.com/bfontaine/grape
 
 * Prerequisites
-- Install [[github:https://github.com/bfontaine/grape][grape]]
+- Install [[https://github.com/bfontaine/grape][grape]]
 * Demos
-The following demos show `gripe` being used to search within [[github:https://github.com/bfontaine/grape][grape]] project itself
+The following demos show `gripe` being used to search within [[https://github.com/bfontaine/grape][grape]] project itself
 - [[file:demos/gripe-ivy.gif][Using ivy]]
 - TODO - Demo for helm
 - TODO - Demo for selectrum
