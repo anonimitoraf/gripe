@@ -16,7 +16,7 @@
 ;;; Commentary:
 ;;
 ;;  Emacs wrapper for https://github.com/bfontaine/grape.
-;;  As of now, only `ivy' and `helm' are the only supported completion packages.
+;;  As of now, only `ivy', `helm', `selectrum' are supported for traversing results.
 ;;  To use:
 ;;  * `M-x gripe-find'
 ;;  * Look for the search file/directory path
@@ -194,7 +194,7 @@ selected value in LOOKUP"
     (gripe--go-to-occurrence selected-val)))
 
 (defun gripe--selectrum (gripe-ast)
-  "Navigate through gripe results with helm.
+  "Navigate through gripe results with selectrum.
 * GRIPE-AST - The output of `gripe--make-grape-output-ast'"
   (let* ((lookup (gripe--make-candidates gripe-ast))
          (selected-key (selectrum-completing-read "Go to a pattern occurrence: " lookup nil t)))
