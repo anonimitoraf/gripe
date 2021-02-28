@@ -176,6 +176,12 @@ SELECTED is expected to be of shape '(\"{path}\" \"{line}\")"
                              (isearch-highlight 0 0)
                              (setq gripe--highlight-removal-timer nil))))))))
 
+(defun gripe--show-config-on-user-error ()
+  "Renders user configuration as a portion of the user error."
+  (concat "Gripe configuration:\n"
+          "gripe-completion: " (prin1-to-string gripe-completion) "\n"
+          "gripe-highlight-duration: " (prin1-to-string gripe-highlight-duration) "\n"))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; S E L E C T R U M ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun gripe--on-selectrum-selection (selected-key lookup)
@@ -193,7 +199,11 @@ selected value in LOOKUP"
   "Navigate through gripe results with selectrum.
 * GRIPE-PARSED-OUTPUT - The output of `gripe--parse-grape-output'"
   (let* ((lookup (gripe--make-candidates gripe-parsed-output))
-         (selected-key (selectrum-completing-read "Go to a pattern occurrence: " lookup nil t)))
+         (selected-key (if (fboundp 'selectrum-completing-read)
+                           (selectrum-completing-read "Go to a pattern occurrence: " lookup nil t)
+                         (user-error (concat "The function`selectrum-completing-read' is missing."
+                                             "Is `selectrum' installed?"
+                                             (gripe--show-config-on-user-error))))))
     (gripe--on-selectrum-selection selected-key lookup)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; H E L M ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -201,19 +211,25 @@ selected value in LOOKUP"
 (defun gripe--make-helm-source (gripe-parsed-output)
   "Create a helm soure from GRIPE-PARSED-OUTPUT."
   (progn
-    (helm-build-sync-source "Pattern occurrences"
-      :match (lambda (_candidate) t)
-      :candidates (gripe--make-candidates gripe-parsed-output)
-      ;; For some reason, helm returns a list for the
-      ;; supposedly single selected candidate
-      :action '(("Preview" . (lambda (multi-selected)
-                               (gripe--go-to-occurrence (car multi-selected))))))))
+    (if (fboundp 'helm-build-sync-source)
+        (helm-build-sync-source "Pattern occurrences"
+          :match (lambda (_candidate) t)
+          :candidates (gripe--make-candidates gripe-parsed-output)
+          ;; For some reason, helm returns a list for the
+          ;; supposedly single selected candidate
+          :action '(("Preview" . (lambda (multi-selected)
+                                   (gripe--go-to-occurrence (car multi-selected))))))
+      (user-error (concat "The function`helm-build-sync-source' is missing. Is `helm' installed?"
+                          (gripe--show-config-on-user-error))))))
 
 (defun gripe--helm (gripe-parsed-output)
   "Navigate through gripe results with helm.
 * GRIPE-PARSED-OUTPUT - The output of `gripe--parse-grape-output'"
-  (helm :sources (gripe--make-helm-source gripe-parsed-output)
-        :buffer "*helm gripe*"))
+  (if (fboundp 'helm)
+      (helm :sources (gripe--make-helm-source gripe-parsed-output)
+            :buffer "*helm gripe*")
+    (user-error (concat "The function`helm' is missing. Is `helm' installed?"
+                        (gripe--show-config-on-user-error)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; I V Y ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -223,13 +239,16 @@ selected value in LOOKUP"
   (interactive)
   (progn
     (require 'ivy)
-    (ivy-read "Preview pattern match: " (gripe--make-candidates gripe-parsed-output)
-              :require-match t
-              :update-fn 'auto
-              ;; This returns '("{path}:{line}" ("{path}" "{line}")).
-              ;; We want to pass in only ("{path}" "{line}")
-              :action (lambda (selected-key-val)
-                        (gripe--go-to-occurrence (car (cdr selected-key-val)))))))
+    (if (fboundp 'ivy-read)
+        (ivy-read "Preview pattern match: " (gripe--make-candidates gripe-parsed-output)
+                  :require-match t
+                  :update-fn 'auto
+                  ;; This returns '("{path}:{line}" ("{path}" "{line}")).
+                  ;; We want to pass in only ("{path}" "{line}")
+                  :action (lambda (selected-key-val)
+                            (gripe--go-to-occurrence (car (cdr selected-key-val)))))
+      (user-error (concat "The function`ivy-read' is missing. Is `ivy' installed?"
+                          (gripe--show-config-on-user-error))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; P U B L I C - I N T E R F A C E ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
