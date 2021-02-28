@@ -2,22 +2,26 @@
 
 Emacs wrapper for https://github.com/bfontaine/grape
 
+* Prerequisites
+- Install [[github:https://github.com/bfontaine/grape][grape]]
 * Demos
-The following demos show `gripe` being used to search within https://github.com/bfontaine/grape
-- [[file:demos/gripe-ivy.gif][Using Ivy]]
+The following demos show `gripe` being used to search within [[github:https://github.com/bfontaine/grape][grape]] project itself
+- [[file:demos/gripe-ivy.gif][Using ivy]]
+- TODO - Demo for helm
+- TODO - Demo for selectrum
 * Notes
-- Only `ivy` is supported at the moment. See [[https://github.com/anonimitoraf/gripe/blob/main/ROADMAP.org][ROADMAP]]
+- ivy, helm and selectrum are supported
 - Uses `project.clj` as the project marker
-
 * Commands
 | Command    | Description                                                       |
 | gripe-find | Invokes `grape` on your specified file/directory path and pattern |
-
 * Configuration
-| Variable         | Description                   | Default | Possible Values |
-| gripe-completion | The completion package to use | nil     | 'ivy            |
+| Variable         | Description                   | Default | Possible Values          |
+| gripe-completion | The completion package to use | nil     | 'ivy, 'helm, 'selectrum  |
 *** Details
 **** gripe-completion
 - Mind the single quote (e.g. 'ivy)
-- If set to nil, one of the installed completion packages will be used automatically. Although currently, only 'ivy is supported.
-- See [[file:ROADMAP.org][ROADMAP]] to see plans to support other completion packages.
+- If set to nil, one of the installed completion packages will be used automatically in this order:
+  + ivy
+  + helm
+  + selectrum
