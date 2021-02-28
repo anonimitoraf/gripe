@@ -85,9 +85,9 @@ output as a string."
          (kill-buffer output-buffer))))
     output-buffer))
 
-(defun gripe--make-grape-output-ast (lines)
-  "Parse grape's output (i.e. LINES) into an AST."
-  (let* ((ast '())
+(defun gripe--parse-grape-output (lines)
+  "Parse grape's output (i.e. LINES) into an a flat list of file paths and line numbers."
+  (let* ((parsed '())
          ;; Returns non-nil if the particular line is the start of an occurrence.
          ;; The heuristic is the fact that the start of the occurrences start with a number.
          (line-occurrence? (lambda (s) (string-match "^\\([[:digit:]]+\\):.*" s)))
@@ -99,7 +99,7 @@ output as a string."
        ((funcall line-occurrence? line)
         (let* ((occ-line-number (match-string 1 line))
                (line-occ (make-gripe--occ-line :line-number occ-line-number))
-               (file-occ (car (last ast))))
+               (file-occ (car (last parsed))))
           (setf (gripe--occ-file-line-numbers file-occ)
                 (append (gripe--occ-file-line-numbers file-occ)
                         (list line-occ)))))
@@ -108,9 +108,9 @@ output as a string."
             ;; Or blank lines
             (length< (string-trim line) 1)) nil)
        ;; Otheriwse, we assume it's a new file occurrence
-       (t (setq ast (append ast (list (make-gripe--occ-file :file-path line
-                                                            :line-numbers '())))))))
-    ast))
+       (t (setq parsed (append parsed (list (make-gripe--occ-file :file-path line
+                                                                  :line-numbers '())))))))
+    parsed))
 
 (defun gripe--path-relative-from-project-root (full-path)
   "Return the relative file path of FULL-PATH from the project's root."
@@ -119,14 +119,14 @@ output as a string."
 
 (defun gripe--render-grape-output (grape-output)
   "Renders the GRAPE-OUTPUT."
-  (let ((gripe-ast (gripe--make-grape-output-ast (split-string grape-output "\n"))))
-    (cond ((equal gripe-completion 'ivy) (gripe--ivy gripe-ast))
-          ((equal gripe-completion 'helm) (gripe--helm gripe-ast))
-          ((equal gripe-completion 'selectrum) (gripe--selectrum gripe-ast))
+  (let ((parsed (gripe--parse-grape-output (split-string grape-output "\n"))))
+    (cond ((equal gripe-completion 'ivy) (gripe--ivy parsed))
+          ((equal gripe-completion 'helm) (gripe--helm parsed))
+          ((equal gripe-completion 'selectrum) (gripe--selectrum parsed))
           ;; No user preference specified, use the first supported completion pkg found:
-          ((featurep 'ivy) (gripe--ivy gripe-ast))
-          ((featurep 'helm) (gripe--helm gripe-ast))
-          ((featurep 'selectrum) (gripe--selectrum gripe-ast))
+          ((featurep 'ivy) (gripe--ivy parsed))
+          ((featurep 'helm) (gripe--helm parsed))
+          ((featurep 'selectrum) (gripe--selectrum parsed))
           (t (user-error (concat "Supported completion packages: (ivy, helm, selectrum). None found"))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; C O M M O N - H E L P E R S ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -135,8 +135,8 @@ output as a string."
   "Flatten LIST-OF-LISTS once (i.e. depth = 1)."
   (apply #'append list-of-lists))
 
-(defun gripe--make-candidates (gripe-ast)
-  "Transform GRIPE-AST into a list of '(file-line-num-string (file-name line-num))."
+(defun gripe--make-candidates (gripe-parsed-output)
+  "Transform GRIPE-PARSED-OUTPUT into a list of '(file-line-num-string (file-name line-num))."
   (gripe--flatten-list-1 (cl-map 'list
                                  (lambda (occ-file)
                                    (cl-map 'list
@@ -151,7 +151,7 @@ output as a string."
                                                                          (gripe--occ-line-line-number occ-line))))
                                                (list candidate-key candidate-val)))
                                            (gripe--occ-file-line-numbers occ-file)))
-                                 gripe-ast)))
+                                 gripe-parsed-output)))
 
 (defvar gripe--highlight-removal-timer nil)
 
@@ -189,41 +189,41 @@ selected value in LOOKUP"
          (selected-val (car (cdr (car selected-entry)))))
     (gripe--go-to-occurrence selected-val)))
 
-(defun gripe--selectrum (gripe-ast)
+(defun gripe--selectrum (gripe-parsed-output)
   "Navigate through gripe results with selectrum.
-* GRIPE-AST - The output of `gripe--make-grape-output-ast'"
-  (let* ((lookup (gripe--make-candidates gripe-ast))
+* GRIPE-PARSED-OUTPUT - The output of `gripe--parse-grape-output'"
+  (let* ((lookup (gripe--make-candidates gripe-parsed-output))
          (selected-key (selectrum-completing-read "Go to a pattern occurrence: " lookup nil t)))
     (gripe--on-selectrum-selection selected-key lookup)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; H E L M ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun gripe--make-helm-source (gripe-ast)
-  "Create a helm soure from GRIPE-AST."
+(defun gripe--make-helm-source (gripe-parsed-output)
+  "Create a helm soure from GRIPE-PARSED-OUTPUT."
   (progn
     (helm-build-sync-source "Pattern occurrences"
       :match (lambda (_candidate) t)
-      :candidates (gripe--make-candidates gripe-ast)
+      :candidates (gripe--make-candidates gripe-parsed-output)
       ;; For some reason, helm returns a list for the
       ;; supposedly single selected candidate
       :action '(("Preview" . (lambda (multi-selected)
                                (gripe--go-to-occurrence (car multi-selected))))))))
 
-(defun gripe--helm (gripe-ast)
+(defun gripe--helm (gripe-parsed-output)
   "Navigate through gripe results with helm.
-* GRIPE-AST - The output of `gripe--make-grape-output-ast'"
-  (helm :sources (gripe--make-helm-source gripe-ast)
+* GRIPE-PARSED-OUTPUT - The output of `gripe--parse-grape-output'"
+  (helm :sources (gripe--make-helm-source gripe-parsed-output)
         :buffer "*helm gripe*"))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; I V Y ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun gripe--ivy (gripe-ast)
+(defun gripe--ivy (gripe-parsed-output)
   "Navigate through gripe results with ivy.
-* GRIPE-AST - The output of `gripe--make-grape-output-ast'"
+* GRIPE-PARSED-OUTPUT - The output of `gripe--parse-grape-output'"
   (interactive)
   (progn
     (require 'ivy)
-    (ivy-read "Preview pattern match: " (gripe--make-candidates gripe-ast)
+    (ivy-read "Preview pattern match: " (gripe--make-candidates gripe-parsed-output)
               :require-match t
               :update-fn 'auto
               ;; This returns '("{path}:{line}" ("{path}" "{line}")).
