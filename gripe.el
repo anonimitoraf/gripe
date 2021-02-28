@@ -182,27 +182,23 @@ SELECTED is expected to be of shape '(\"{path}\" \"{line}\")"
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; S E L E C T R U M ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(add-hook 'selectrum-candidate-selected-hook
-          (lambda (selected-key &rest props)
-            (let* ((lookup (plist-get props :minibuffer-completion-table))
-                   (selected-entry (cl-remove-if-not
-                                    (lambda (entry)
-                                      (equal (car entry) selected-key))
-                                    lookup))
-                   (selected-val (car (cdr (car selected-entry)))))
-              ;; (message (concat "Selectrum hook: "
-              ;;                  (prin1-to-string selected-key)
-              ;;                  " and: "
-              ;;                  (prin1-to-string selected-val)))
-              (gripe--go-to-occurrence selected-val))))
+(defun gripe--on-selectrum-selection (selected-key lookup)
+  "Process a selectrum selection.
+Takes in the SELECTED-KEY which is used to look up the
+selected value in LOOKUP"
+  (let* ((selected-entry (cl-remove-if-not
+                          (lambda (entry)
+                            (equal (car entry) selected-key))
+                          lookup))
+         (selected-val (car (cdr (car selected-entry)))))
+    (gripe--go-to-occurrence selected-val)))
 
 (defun gripe--selectrum (gripe-ast)
   "Navigate through gripe results with helm.
 * GRIPE-AST - The output of `gripe--make-grape-output-ast'"
-  (selectrum-completing-read "Go to a pattern occurrence: "
-                             (gripe--make-candidates gripe-ast)
-                             nil ; No filtering on candidates
-                             t))
+  (let* ((lookup (gripe--make-candidates gripe-ast))
+         (selected-key (selectrum-completing-read "Go to a pattern occurrence: " lookup nil t)))
+    (gripe--on-selectrum-selection selected-key lookup)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; H E L M ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
