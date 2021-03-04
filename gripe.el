@@ -56,7 +56,7 @@ Defaults to 1 sec."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; C O R E ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; This is shared across the completion packages' implementations
 
-(cl-defstruct gripe--occ-line line-number)
+(cl-defstruct gripe--occ-line line-number preview)
 (cl-defstruct gripe--occ-file
   file-path
   line-numbers)
@@ -90,7 +90,7 @@ output as a string."
   (let* ((parsed '())
          ;; Returns non-nil if the particular line is the start of an occurrence.
          ;; The heuristic is the fact that the start of the occurrences start with a number.
-         (line-occurrence? (lambda (s) (string-match "^\\([[:digit:]]+\\):.*" s)))
+         (line-occurrence? (lambda (s) (string-match "^\\([[:digit:]]+\\):\\(.*\\)" s)))
          ;; Continuations of an occurrence start with space/s
          (line-continuation? (lambda (s) (string-match "^\s+.*$" s))))
     (dolist (line lines)
@@ -98,7 +98,9 @@ output as a string."
        ;; Check for line occurrences
        ((funcall line-occurrence? line)
         (let* ((occ-line-number (match-string 1 line))
-               (line-occ (make-gripe--occ-line :line-number occ-line-number))
+               (occ-line-preview (match-string 2 line))
+               (line-occ (make-gripe--occ-line :line-number occ-line-number
+                                               :preview occ-line-preview))
                (file-occ (car (last parsed))))
           (setf (gripe--occ-file-line-numbers file-occ)
                 (append (gripe--occ-file-line-numbers file-occ)
@@ -143,7 +145,9 @@ output as a string."
                                            (lambda (occ-line)
                                              (let* ((candidate-key (concat (gripe--path-relative-from-project-root
                                                                             (gripe--occ-file-file-path occ-file))
-                                                                           (gripe--occ-line-line-number occ-line)))
+                                                                           (gripe--occ-line-line-number occ-line)
+                                                                           " "
+                                                                           (gripe--occ-line-preview occ-line)))
                                                     ;; grape's file path has a trailing ":" which we want to remove
                                                     (candidate-val (list (replace-regexp-in-string
                                                                           "\\(.*\\):$" "\\1"
@@ -213,12 +217,12 @@ selected value in LOOKUP"
   (progn
     (if (fboundp 'helm-build-sync-source)
         (helm-build-sync-source "Pattern occurrences"
-                                :match (lambda (_candidate) t)
-                                :candidates (gripe--make-candidates gripe-parsed-output)
-                                ;; For some reason, helm returns a list for the
-                                ;; supposedly single selected candidate
-                                :action '(("Preview" . (lambda (multi-selected)
-                                                         (gripe--go-to-occurrence (car multi-selected))))))
+          :match (lambda (_candidate) t)
+          :candidates (gripe--make-candidates gripe-parsed-output)
+          ;; For some reason, helm returns a list for the
+          ;; supposedly single selected candidate
+          :action '(("Preview" . (lambda (multi-selected)
+                                   (gripe--go-to-occurrence (car multi-selected))))))
       (user-error (concat "The function `helm-build-sync-source' is missing. Is `helm' installed?\n"
                           (gripe--show-config-on-user-error))))))
 
